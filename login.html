@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <title>登入 - InBodyFit</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("images/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 0;
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-box h1 {
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+
+        .login-box p {
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .login-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #c18a87;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px auto 0 auto;
+        }
+
+        .login-btn:hover {
+            background-color: #a5706d;
+        }
+
+        .links {
+            margin-top: 20px;
+        }
+
+        .links a {
+            color: #a5706d;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #cf8888;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h1>InBodyFit</h1>
+        <p>登入你的帳號開始健身計畫</p>
+
+        <form onsubmit="event.preventDefault(); login();">
+            <input type="text" placeholder="帳號或 Email" id="loginInput" required>
+            <div class="password-container">
+                <input type="password" placeholder="密碼" id="loginPassword" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword(this)">顯示</button>
+            </div>
+            <button type="submit" class="login-btn">登入</button>
+        </form>
+
+        <div class="links">
+            <a href="register.html">註冊帳號</a>｜
+            <a href="#" onclick="forgotPassword()">忘記密碼？</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js';
+        import { getFirestore, collection, where, getDocs, query } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js';
+
+        // Firebase 設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYvosLMm7SaPAFQzwuwuUDfFqsSXk5kTY",
+            authDomain: "smart-gym-men.firebaseapp.com",
+            projectId: "smart-gym-men",
+            storageBucket: "smart-gym-men.firebasestorage.app",
+            messagingSenderId: "175956584528",
+            appId: "1:175956584528:web:8213558230e49784568955",
+            measurementId: "G-NMSFH2SKV7"
+        };
+
+        // 模組化初始化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 登入邏輯
+        async function login() {
+            const input = document.getElementById("loginInput").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            if (!input || !password) {
+                alert("請填寫帳號或 Email 及密碼");
+                return;
+            }
+
+            try {
+                // 1. 嘗試用 Email 登入
+                await signInWithEmailAndPassword(auth, input, password);
+                alert("登入成功！");
+                window.location.href = "index.html";
+                return;
+            } catch (emailError) {
+                console.warn("Email 登入失敗：", emailError);
+            }
+
+            // 2. 如果 Email 登入失敗，再用帳號查 Firestore
+            try {
+                const usersCollection = collection(db, "users");
+                const usernameQuery = query(usersCollection, where("username", "==", input));
+                const snapshot = await getDocs(usernameQuery);
+
+                if (snapshot.empty) {
+                    alert("找不到帳號或 Email");
+                    return;
+                }
+
+                const user = snapshot.docs[0].data();
+                const firebaseEmail = user.email || `dummy_${user.username}@example.com`;
+
+                try {
+                    await signInWithEmailAndPassword(auth, firebaseEmail, password);
+                    alert("登入成功！");
+                    window.location.href = "index.html";
+                } catch (authError) {
+                    console.error(authError);
+                    alert("登入失敗：密碼錯誤");
+                }
+
+            } catch (dbError) {
+                console.error(dbError);
+                alert("登入失敗，請稍後再試");
+            }
+        }
+
+        // 忘記密碼邏輯
+        async function forgotPassword() {
+            const email = prompt("請輸入你的 Email");
+            if (!email) return;
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("重設密碼信已發送");
+            } catch (error) {
+                console.error(error);
+                alert("重設密碼失敗，請檢查 Email 是否正確。");
+            }
+        }
+
+        // 切換密碼顯示/隱藏函式
+        function togglePassword(btn) {
+            const pwd = document.getElementById('loginPassword');
+            if (pwd.type === "password") {
+                pwd.type = "text";
+                btn.textContent = "隱藏";
+            } else {
+                pwd.type = "password";
+                btn.textContent = "顯示";
+            }
+        }
+
+        // ----------------------------------------------------
+        // 🚨 關鍵修正：確保所有事件都在模組作用域內被綁定
+        // ----------------------------------------------------
+
+        // 1. 綁定登入表單的提交事件
+        document.querySelector('form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            login();
+        });
+
+        // 2. 🚨 新增：綁定密碼切換按鈕的點擊事件
+        // 找到密碼切換按鈕
+        const toggleBtn = document.querySelector('.toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                // 將按鈕本身 (this) 傳遞給函式
+                togglePassword(this);
+            });
+        }
+
+        // 3. 綁定忘記密碼連結的點擊事件
+        document.querySelector('.links a:last-child').addEventListener('click', (event) => {
+            event.preventDefault();
+            forgotPassword();
+        });
+
+    </script>
+</body>
+
+</html>

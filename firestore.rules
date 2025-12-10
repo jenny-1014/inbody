@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // 1. 允許任何人讀取，以確保登入頁面能透過 username 查詢
+      //    (請注意：這會公開 users 集合中所有欄位)
+      allow read: if true; 
+      
+      // 2. 寫入/創建：允許任何已登入用戶寫入**他們自己**的文件
+      //    這解決了註冊後寫入失敗的問題
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

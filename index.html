@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主頁 - InBodyFit</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("images/bg.jpg");
+            /* 確保您的圖片路徑正確 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+            /* 防止水平滾動 */
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 0;
+        }
+
+        .header {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #c18a87;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-menu a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: #c18a87;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info .username-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .user-info .logout-btn {
+            background-color: #a5706d;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-info .logout-btn:hover {
+            background-color: #906660;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .welcome-message {
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .welcome-message h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #f1c6c3;
+        }
+
+        .welcome-message p {
+            font-size: 20px;
+            line-height: 1.6;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                padding: 15px 20px;
+            }
+
+            .nav-menu {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 15px;
+                width: 100%;
+            }
+
+            .nav-menu a {
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-menu a:last-child {
+                border-bottom: none;
+            }
+
+            .user-info {
+                margin-top: 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .welcome-message h1 {
+                font-size: 36px;
+            }
+
+            .welcome-message p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <a href="index.html" class="logo">InBodyFit</a>
+        <nav class="nav-menu">
+            <a href="#" onclick="showFeature('myTraining')">我的訓練🏋️</a>
+            <a href="#" onclick="showFeature('myBMI')">自己的BMI</a>
+            <a href="#" onclick="showFeature('mealPlan')">菜單</a>
+            <a href="#" onclick="showFeature('aiAdvisor')">AI顧問</a>
+        </nav>
+        <div class="user-info">
+            <span class="username-display" id="loggedInUserName">載入中...</span>
+            <button class="logout-btn" onclick="logout()">登出</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="welcome-message" id="welcomeBox">
+            <h1 id="welcomeGreeting">歡迎回來！</h1>
+            <p>開始您的智慧健身之旅吧！在這裡，您可以管理您的訓練、追蹤BMI、選擇菜單並獲得AI的專業建議。</p>
+            <p>點擊上方導航欄的功能選項來探索更多內容。</p>
+        </div>
+
+        <!-- 新增: 各功能區塊 -->
+        <div id="featureContent" style="display: none; width:100%; max-width:1000px;">
+            <!-- 我的訓練 -->
+            <section id="myTraining" style="display:none; margin:20px auto; color:#fff;">
+                <h2>我的訓練</h2>
+                <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:300px;">
+                        <h3>訓練清單</h3>
+                        <ul id="trainingList" style="list-style:none; padding:0;"></ul>
+                    </div>
+                    <div style="flex:1; min-width:300px;">
+                        <h3>手動新增訓練</h3>
+                        <form id="addTrainingForm">
+                            <input id="t_name" placeholder="運動名稱" required style="width:100%; padding:8px; margin-bottom:6px;">
+                            <input id="t_sets" placeholder="每組數 (例如:3)" type="number" min="1" style="width:48%; padding:8px; margin-right:4%;">
+                            <input id="t_reps" placeholder="每次次數 (例如:12)" type="number" min="1" style="width:48%; padding:8px;">
+                            <button type="submit" style="margin-top:8px; padding:8px 12px;">新增到我的訓練</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 自己的BMI -->
+            <section id="myBMI" style="display:none; margin:20px auto; color:#fff;">
+                <h2>自己的 BMI</h2>
+                <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:280px;">
+                        <label>身高 (cm)</label>
+                        <input id="heightInput" type="number" min="50" value="" style="width:100%; padding:8px; margin-bottom:8px;">
+                        <label>體重 (kg)</label>
+                        <input id="weightInput" type="number" min="20" value="" style="width:100%; padding:8px; margin-bottom:8px;">
+                        <button id="saveMeasureBtn" style="padding:8px 12px;">儲存</button>
+                    </div>
+                    <div style="flex:1; min-width:280px;">
+                        <h3>當前 BMI</h3>
+                        <p id="currentBMI">尚未輸入身高/體重</p>
+                        <h3>月底預期 BMI</h3>
+                        <p id="expectedBMI">請先儲存測量值並確認訓練清單</p>
+                        <p style="font-size:0.9em; opacity:0.9;">預期邏輯：根據目前「我的訓練」項目數做保守估計 (每項視為每周一次，月內依剩餘週數調整)</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 菜單 -->
+            <section id="mealPlan" style="display:none; margin:20px auto; color:#fff;">
+                <h2>建議運動菜單</h2>
+                <p>挑選喜歡的運動，並設定組數與次數，加入「我的訓練」。</p>
+                <div id="menuList" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;"></div>
+            </section>
+
+            <!-- AI顧問 -->
+            <section id="aiAdvisor" style="display:none; margin:20px auto; color:#fff;">
+                <h2>AI 顧問 (語音聊天室)</h2>
+                <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:300px;">
+                        <div id="chatLog" style="height:260px; overflow:auto; background:rgba(255,255,255,0.06); padding:12px; border-radius:8px;"></div>
+                        <div style="margin-top:8px; display:flex; gap:8px;">
+                            <button id="startRec">🎤 語音輸入</button>
+                            <button id="stopRec" disabled>停止</button>
+                            <button id="speakLast">🔊 唸出 AI 回覆</button>
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width:200px;">
+                        <textarea id="userMsg" placeholder="輸入訊息..." style="width:100%; height:120px; padding:8px;"></textarea>
+                        <button id="sendMsg" style="margin-top:8px; padding:8px 12px;">送出</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js';
+
+        // Firebase 設定 - 請確保與 login.html 和 register.html 一致
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYvosLMm7SaPAFQzwuwuUDfFqsSXk5kTY",
+            authDomain: "smart-gym-men.firebaseapp.com",
+            projectId: "smart-gym-men",
+            storageBucket: "smart-gym-men.firebasestorage.app",
+            messagingSenderId: "175956584528",
+            appId: "1:175956584528:web:8213558230e49784568955",
+            measurementId: "G-NMSFH2SKV7"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI references
+        const welcomeBox = document.getElementById('welcomeBox');
+        const featureContent = document.getElementById('featureContent');
+        const sections = {
+            myTraining: document.getElementById('myTraining'),
+            myBMI: document.getElementById('myBMI'),
+            mealPlan: document.getElementById('mealPlan'),
+            aiAdvisor: document.getElementById('aiAdvisor')
+        };
+
+        // Simple hardcoded menu suggestions
+        const suggestedMenu = [
+            { name: '深蹲 (Squat)', defaultSets: 3, defaultReps: 10 },
+            { name: '伏地挺身 (Push-up)', defaultSets: 3, defaultReps: 12 },
+            { name: '硬舉 (Deadlift)', defaultSets: 3, defaultReps: 6 },
+            { name: '平板支撐 (Plank)', defaultSets: 3, defaultReps: 60 }, // seconds
+            { name: '坐姿划船 (Seated Row)', defaultSets: 3, defaultReps: 10 },
+        ];
+
+        // Navigation visibility
+        window.showFeature = (featureName) => {
+            welcomeBox.style.display = 'none';
+            featureContent.style.display = 'block';
+            Object.keys(sections).forEach(k => sections[k].style.display = 'none');
+            if (sections[featureName]) sections[featureName].style.display = 'block';
+            // load data when opened
+            if (featureName === 'myTraining') loadTraining();
+            if (featureName === 'mealPlan') renderMenu();
+            if (featureName === 'myBMI') computeAndShowBMI();
+        };
+
+        // Auth state and load user-specific data
+        let currentUser = null;
+        onAuthStateChanged(auth, async (user) => {
+            const userNameDisplay = document.getElementById('loggedInUserName');
+            const welcomeGreeting = document.getElementById('welcomeGreeting');
+
+            if (user) {
+                currentUser = user;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    const displayName = userData.name || userData.username || user.email;
+                    userNameDisplay.textContent = `歡迎, ${displayName}`;
+                    welcomeGreeting.textContent = `歡迎回來, ${userData.name || userData.username || user.email}！`;
+                } else {
+                    userNameDisplay.textContent = `歡迎, ${user.email}`;
+                    welcomeGreeting.textContent = `歡迎回來, ${user.email}！`;
+                }
+                // preload menu and training
+                renderMenu();
+                loadTraining();
+                loadMeasurementsToInputs();
+            } else {
+                alert("您尚未登入，請先登入！");
+                window.location.href = "login.html";
+            }
+        });
+
+        // Training CRUD
+        const trainingListEl = document.getElementById('trainingList');
+
+        function renderTrainingItem(docSnap) {
+            const data = docSnap.data();
+            const id = docSnap.id;
+            const li = document.createElement('li');
+            li.style = "background:rgba(255,255,255,0.04); padding:10px; margin-bottom:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;";
+            const left = document.createElement('div');
+            left.innerHTML = `<strong>${data.name}</strong><br><small>組: ${data.sets} × 次: ${data.reps}</small>`;
+            const right = document.createElement('div');
+            right.style.display = 'flex';
+            right.style.gap = '8px';
+            const chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.checked = !!data.completed;
+            chk.addEventListener('change', () => toggleComplete(id, chk.checked));
+            const del = document.createElement('button');
+            del.textContent = '刪除';
+            del.addEventListener('click', () => removeTraining(id));
+            right.appendChild(chk);
+            right.appendChild(del);
+            li.appendChild(left);
+            li.appendChild(right);
+            li.id = `t-${id}`;
+            return li;
+        }
+
+        let trainingUnsub = null;
+        function loadTraining() {
+            if (!currentUser) return;
+            // 清空現有列表
+            trainingListEl.innerHTML = '';
+            // 使用 onSnapshot 監聽 users/{uid}/trainings
+            if (trainingUnsub) trainingUnsub(); // 取消先前監聽
+            const col = collection(db, 'users', currentUser.uid, 'trainings');
+            trainingUnsub = onSnapshot(col, (snap) => {
+                trainingListEl.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const li = renderTrainingItem(docSnap);
+                    trainingListEl.appendChild(li);
+                });
+                // 更新 BMI 畫面預期（若當前顯示）
+                if (sections.myBMI.style.display !== 'none') computeAndShowBMI();
+            });
+        }
+
+        async function addTraining(data) {
+            if (!currentUser) return alert('未登入');
+            const col = collection(db, 'users', currentUser.uid, 'trainings');
+            await addDoc(col, { ...data, completed: false, createdAt: Date.now() });
+        }
+
+        async function toggleComplete(id, checked) {
+            if (!currentUser) return;
+            const tDoc = doc(db, 'users', currentUser.uid, 'trainings', id);
+            await updateDoc(tDoc, { completed: checked });
+        }
+
+        async function removeTraining(id) {
+            if (!currentUser) return;
+            const tDoc = doc(db, 'users', currentUser.uid, 'trainings', id);
+            await deleteDoc(tDoc);
+        }
+
+        // Add training form submit
+        document.getElementById('addTrainingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('t_name').value.trim();
+            const sets = Number(document.getElementById('t_sets').value) || 3;
+            const reps = Number(document.getElementById('t_reps').value) || 10;
+            if (!name) return alert('請輸入運動名稱');
+            await addTraining({ name, sets, reps });
+            e.target.reset();
+        });
+
+        // Render menu suggestions
+        const menuListEl = document.getElementById('menuList');
+        function renderMenu() {
+            menuListEl.innerHTML = '';
+            suggestedMenu.forEach((m, idx) => {
+                const card = document.createElement('div');
+                card.style = "background:rgba(255,255,255,0.04); padding:12px; border-radius:8px;";
+                card.innerHTML = `<strong>${m.name}</strong><div style="margin-top:8px;">
+					<label>組數 <input type="number" value="${m.defaultSets}" min="1" id="menu_sets_${idx}" style="width:60px"></label>
+					<label style="margin-left:8px;">次數 <input type="number" value="${m.defaultReps}" min="1" id="menu_reps_${idx}" style="width:60px"></label>
+					</div>`;
+                const btn = document.createElement('button');
+                btn.textContent = '加入訓練';
+                btn.style.marginTop = '8px';
+                btn.addEventListener('click', async () => {
+                    const sets = Number(document.getElementById(`menu_sets_${idx}`).value) || m.defaultSets;
+                    const reps = Number(document.getElementById(`menu_reps_${idx}`).value) || m.defaultReps;
+                    await addTraining({ name: m.name, sets, reps });
+                    alert(`${m.name} 已加入我的訓練`);
+                });
+                card.appendChild(btn);
+                menuListEl.appendChild(card);
+            });
+        }
+
+        // BMI logic: save/load measurements and compute expected BMI
+        const heightInput = document.getElementById('heightInput');
+        const weightInput = document.getElementById('weightInput');
+        const currentBMIEl = document.getElementById('currentBMI');
+        const expectedBMIEl = document.getElementById('expectedBMI');
+        document.getElementById('saveMeasureBtn').addEventListener('click', saveMeasurements);
+
+        async function saveMeasurements() {
+            if (!currentUser) return alert('未登入');
+            const h = Number(heightInput.value);
+            const w = Number(weightInput.value);
+            if (!h || !w) return alert('請輸入正確身高體重');
+            const uDoc = doc(db, 'users', currentUser.uid);
+            await setDoc(uDoc, { measurements: { height: h, weight: w, timestamp: Date.now() } }, { merge: true });
+            alert('已儲存');
+            computeAndShowBMI();
+        }
+
+        async function loadMeasurementsToInputs() {
+            if (!currentUser) return;
+            const uDocRef = doc(db, 'users', currentUser.uid);
+            const snap = await getDoc(uDocRef);
+            if (snap.exists()) {
+                const d = snap.data();
+                if (d.measurements) {
+                    heightInput.value = d.measurements.height || '';
+                    weightInput.value = d.measurements.weight || '';
+                }
+            }
+        }
+
+        function computeBMI(hCm, wKg) {
+            if (!hCm || !wKg) return null;
+            const hM = hCm / 100;
+            return +(wKg / (hM * hM)).toFixed(2);
+        }
+
+        function weeksUntilMonthEnd() {
+            const today = new Date();
+            const end = new Date(today.getFullYear(), today.getMonth() + 1, 0); // last day of month
+            const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            return Math.max(1, Math.round(diffDays / 7)); // at least 1 week
+        }
+
+        async function computeAndShowBMI() {
+            const h = Number(heightInput.value);
+            const w = Number(weightInput.value);
+            const cur = computeBMI(h, w);
+            currentBMIEl.textContent = cur ? `${cur}` : '尚未輸入身高/體重';
+            // estimate reduction: assume each training item equals 1 session/week; each session => conservative -0.08 kg bodyweight per session/week for month
+            // use item count from training collection
+            if (!currentUser) {
+                expectedBMIEl.textContent = '未登入';
+                return;
+            }
+            // fetch trainings once
+            const trainingsCol = collection(db, 'users', currentUser.uid, 'trainings');
+            const snap = await getDoc(doc(db, 'users', currentUser.uid)); // quick read to ensure exists (we could do query but keep simple)
+            // count items by reading snapshot via onSnapshot would be async; instead do a single get using onSnapshot not available here -> use onSnapshot data cached via loadTraining listener.
+            // We'll estimate based on DOM list count:
+            const itemCount = trainingListEl.children.length || 0;
+            if (!cur) {
+                expectedBMIEl.textContent = '請先輸入身高/體重';
+                return;
+            }
+            const weeks = weeksUntilMonthEnd();
+            // conservative weight change per training item per week (kg)
+            const kgPerItemPerWeek = -0.08; // conservative
+            const expectedWeightChange = itemCount * kgPerItemPerWeek * weeks;
+            const currentWeight = w;
+            const expectedWeight = +(currentWeight + expectedWeightChange).toFixed(1);
+            const expectedBMI = computeBMI(h, expectedWeight);
+            expectedBMIEl.textContent = expectedBMI ? `${expectedBMI}（估計體重 ${expectedWeight} kg）` : '無法計算';
+        }
+
+        // AI 顧問 (本地 Web Speech API + 簡單回覆)
+        const chatLog = document.getElementById('chatLog');
+        const userMsg = document.getElementById('userMsg');
+        const sendMsgBtn = document.getElementById('sendMsg');
+        const startRecBtn = document.getElementById('startRec');
+        const stopRecBtn = document.getElementById('stopRec');
+        const speakLastBtn = document.getElementById('speakLast');
+
+        let lastAIResp = '';
+        sendMsgBtn.addEventListener('click', () => {
+            const text = userMsg.value.trim();
+            if (!text) return;
+            appendChat('我', text);
+            userMsg.value = '';
+            aiRespond(text);
+        });
+
+        function appendChat(who, text) {
+            const p = document.createElement('div');
+            p.style.marginBottom = '8px';
+            p.innerHTML = `<strong>${who}:</strong> ${text}`;
+            chatLog.appendChild(p);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function aiRespond(text) {
+            // very small rule-based replies for offline demo
+            const low = text.toLowerCase();
+            let resp = "抱歉，我目前只能提供簡單建議。請更具體描述問題。";
+            if (low.includes('減肥') || low.includes('瘦')) resp = "建議每週維持有氧與阻力訓練，並調整飲食；每週至少3次中度運動。";
+            if (low.includes('增肌')) resp = "建議增加蛋白質攝取與每週3-4次的阻力訓練，逐步進行重量遞增。";
+            if (low.includes('建議') || low.includes('菜單')) resp = "推薦：深蹲、硬舉、臥推、划船，可交替安排上/下/休息日。";
+            if (low.includes('嗨') || low.includes('hello') || low.includes('hi')) resp = "嗨！需要什麼訓練建議嗎？";
+            lastAIResp = resp;
+            appendChat('AI', resp);
+            speakText(resp);
+        }
+
+        // TTS
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) return;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'zh-TW';
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utter);
+        }
+        speakLastBtn.addEventListener('click', () => {
+            if (lastAIResp) speakText(lastAIResp);
+        });
+
+        // STT (Chrome)
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
+            recognition.lang = 'zh-TW';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+            recognition.onresult = (e) => {
+                const txt = e.results[0][0].transcript;
+                appendChat('我(語音)', txt);
+                aiRespond(txt);
+            };
+            recognition.onerror = (e) => console.error('STT error', e);
+            recognition.onend = () => {
+                startRecBtn.disabled = false;
+                stopRecBtn.disabled = true;
+            };
+        } else {
+            startRecBtn.disabled = true;
+            startRecBtn.title = '此瀏覽器不支援語音辨識';
+        }
+
+        startRecBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            recognition.start();
+            startRecBtn.disabled = true;
+            stopRecBtn.disabled = false;
+        });
+        stopRecBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            recognition.stop();
+            startRecBtn.disabled = false;
+            stopRecBtn.disabled = true;
+        });
+
+        // 登出功能 (保留原有)
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+                alert("您已成功登出！");
+                window.location.href = "login.html";
+            } catch (error) {
+                console.error("登出失敗：", error);
+                alert("登出失敗，請稍後再試。");
+            }
+        };
+
+    </script>
+</body>
+
+</html>

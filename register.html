@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <title>註冊帳號 - 智慧健身菜單建議系統</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url("images/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 0;
+        }
+
+        .register-box {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 40px;
+            border-radius: 12px;
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .register-box h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+
+        .register-box p {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: none;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #a5706d;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px auto 0 auto;
+        }
+
+        button:hover {
+            background-color: #a5706d;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #a5706d;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-box">
+        <h1>註冊帳號</h1>
+        <p>建立你的專屬健身帳號</p>
+
+        <input type="text" id="name" placeholder="名字" required>
+        <input type="text" id="username" placeholder="帳號" required>
+        <input type="email" id="email" placeholder="Email（選填，若未填寫無法使用忘記密碼功能）">
+
+        <input type="password" id="password" placeholder="密碼" required>
+        <input type="password" id="confirm" placeholder="確認密碼" required>
+
+        <button onclick="register()">註冊</button>
+
+        <a href="login.html">回登入頁</a>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js';
+        import { getFirestore, collection, where, getDocs, doc, setDoc, query } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js';
+
+        // Firebase 設定
+        const firebaseConfig = {
+            // ... (您的設定保持不變)
+            apiKey: "AIzaSyBYvosLMm7SaPAFQzwuwuUDfFqsSXk5kTY",
+            authDomain: "smart-gym-men.firebaseapp.com",
+            projectId: "smart-gym-men",
+            storageBucket: "smart-gym-men.firebasestorage.app",
+            messagingSenderId: "175956584528",
+            appId: "1:175956584528:web:8213558230e49784568955",
+            measurementId: "G-NMSFH2SKV7"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); // 模組化語法
+        const db = getFirestore(app); // 模組化語法
+
+        // 註冊
+        // 由於我們使用了 type="module"，register 函式不能直接被 HTML 的 onclick 屬性調用。
+        // 我們需要為按鈕添加一個事件監聽器。
+        document.querySelector('button').addEventListener('click', register);
+
+        async function register() {
+            const name = document.getElementById("name").value.trim();
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const confirm = document.getElementById("confirm").value;
+
+            if (!name || !username || !password || !confirm) {
+                alert("請填寫所有必填欄位");
+                return;
+            }
+
+            if (password !== confirm) {
+                alert("兩次密碼不一致");
+                return;
+            }
+
+            try {
+                // 檢查帳號是否重複
+                // 模組化語法: collection, where, getDocs
+                const usersCollection = collection(db, "users");
+                const usernameQuery = where("username", "==", username);
+                const usernameSnap = await getDocs(query(usersCollection, usernameQuery));
+
+                if (!usernameSnap.empty) {
+                    alert("帳號已存在");
+                    return;
+                }
+
+                // 檢查 Email 是否重複（如果有填）
+                if (email) {
+                    const emailQuery = where("email", "==", email);
+                    const emailSnap = await getDocs(query(usersCollection, emailQuery));
+                    if (!emailSnap.empty) {
+                        alert("Email 已被使用");
+                        return;
+                    }
+                }
+
+                // 使用 Email 或 dummy Email 註冊 Firebase Auth
+                // 模組化語法: createUserWithEmailAndPassword
+                const firebaseEmail = email || `dummy_${username}@example.com`;
+                const userCredential = await createUserWithEmailAndPassword(auth, firebaseEmail, password);
+
+                // 將資料存入 Firestore
+                // 模組化語法: doc, setDoc
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    name,
+                    username,
+                    email
+                });
+
+                alert("註冊成功！");
+                window.location.href = "login.html";
+
+            } catch (error) {
+                console.error(error);
+                alert("註冊失敗：" + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>
