@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>註冊帳號 - 智慧健身菜單建議系統</title>
-    <style>
+        <style>
+        /* 引入現代字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Noto Sans TC', sans-serif; /* 使用新字體 */
             background-image: url("images/bg.jpg");
             background-size: cover;
             background-position: center;
@@ -21,72 +24,142 @@
             position: relative;
             overflow: hidden;
         }
-
+    
+        /* 背景遮罩加深一點，突顯文字 */
         body::before {
             content: "";
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(3px);
             z-index: 0;
         }
-
-        .register-box {
+    
+        /* 通用容器 (Login/Register Box) - 毛玻璃效果核心 */
+        .login-box, .register-box {
             position: relative;
             z-index: 1;
-            background: rgba(0, 0, 0, 0.65);
-            padding: 40px;
-            border-radius: 12px;
-            width: 380px;
+            background: rgba(255, 255, 255, 0.1); /* 極淡白色背景 */
+            backdrop-filter: blur(15px); /* 背景模糊 */
+            -webkit-backdrop-filter: blur(15px);
+            padding: 50px 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
             text-align: center;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* 更有層次感的陰影 */
+            border: 1px solid rgba(255, 255, 255, 0.15); /* 細緻邊框 */
         }
-
-        .register-box h1 {
-            font-size: 26px;
-            margin-bottom: 10px;
+    
+        h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #f1c6c3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
         }
-
-        .register-box p {
-            font-size: 14px;
-            color: #ccc;
-            margin-bottom: 30px;
+    
+        p {
+            margin-bottom: 35px;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
         }
-
+    
+        /* 輸入框美化 */
         input {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             margin: 10px 0;
-            border-radius: 6px;
-            border: none;
-            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
             font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            outline: none;
         }
-
-        button {
-            display: block;
+    
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+    
+        input:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: #c18a87;
+            box-shadow: 0 0 10px rgba(193, 138, 135, 0.3);
+        }
+    
+        /* 按鈕美化 */
+        .login-btn, button {
             width: 100%;
-            padding: 12px;
-            background-color: #a5706d;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px auto 0 auto;
-        }
-
-        button:hover {
-            background-color: #a5706d;
-        }
-
-        a {
-            display: inline-block;
+            padding: 14px;
             margin-top: 20px;
-            color: #a5706d;
-            text-decoration: none;
+            background: linear-gradient(135deg, #c18a87 0%, #a5706d 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            letter-spacing: 1px;
+        }
+    
+        .login-btn:hover, button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(193, 138, 135, 0.4);
+        }
+    
+        .login-btn:active, button:active {
+            transform: translateY(0);
+        }
+    
+        /* 連結美化 */
+        .links, a {
+            margin-top: 25px;
             font-size: 14px;
+        }
+    
+        a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+            margin: 0 8px;
+        }
+    
+        a:hover {
+            color: #f1c6c3;
+            text-decoration: underline;
+        }
+    
+        /* 密碼切換按鈕 */
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 13px;
+            width: auto;
+            padding: 5px;
+            margin: 0;
+            box-shadow: none !important;
+        }
+        .toggle-btn:hover {
+            color: #fff;
+            background: none;
+            transform: translateY(-50%) !important;
         }
     </style>
 </head>
