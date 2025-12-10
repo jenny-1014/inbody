@@ -606,13 +606,31 @@
             aiRespond(text);
         });
 
-        function appendChat(who, text) {
-            const p = document.createElement('div');
-            p.style.marginBottom = '8px';
-            p.innerHTML = `<strong>${who}:</strong> ${text}`;
-            chatLog.appendChild(p);
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
+		function appendChat(who, text) {
+		    const div = document.createElement('div');
+		    // 判斷是誰發言，給予不同的 class
+		    const isUser = who === '我' || who.includes('我');
+		    
+		    div.style.cssText = `
+		        padding: 10px 15px;
+		        border-radius: 18px;
+		        margin-bottom: 10px;
+		        max-width: 75%;
+		        word-wrap: break-word;
+		        font-size: 15px;
+		        line-height: 1.5;
+		        align-self: ${isUser ? 'flex-end' : 'flex-start'};
+		        background-color: ${isUser ? '#d48885' : 'rgba(255,255,255,0.15)'};
+		        color: #fff;
+		        border-bottom-${isUser ? 'right' : 'left'}-radius: 4px;
+		    `;
+		    
+		    // 不再顯示 "我:" 或 "AI:" 這些字眼，直接顯示內容，靠左右位置區分
+		    div.textContent = text; 
+		    
+		    chatLog.appendChild(div);
+		    chatLog.scrollTop = chatLog.scrollHeight;
+		}
 
         function aiRespond(text) {
             // very small rule-based replies for offline demo
