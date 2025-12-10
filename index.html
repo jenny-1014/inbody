@@ -243,10 +243,10 @@
     <header class="header">
         <a href="index.html" class="logo">InBodyFit</a>
         <nav class="nav-menu">
-            <a href="#" onclick="showFeature('myTraining')">我的訓練🏋️</a>
-            <a href="#" onclick="showFeature('myBMI')">自己的BMI</a>
-            <a href="#" onclick="showFeature('mealPlan')">菜單</a>
-            <a href="#" onclick="showFeature('aiAdvisor')">AI顧問</a>
+			<a href="#" onclick="showFeature('myTraining')">我的訓練🏋️</a>
+			<a href="#" onclick="showFeature('myInBody')">我的InBody</a> 
+			<a href="#" onclick="showFeature('mealPlan')">菜單</a>
+			<a href="#" onclick="showFeature('aiAdvisor')">AI顧問</a>
         </nav>
         <div class="user-info">
             <span class="username-display" id="loggedInUserName">載入中...</span>
@@ -283,26 +283,51 @@
                 </div>
             </section>
 
-            <!-- 自己的BMI -->
-            <section id="myBMI" style="display:none; margin:20px auto; color:#fff;">
-                <h2>自己的 BMI</h2>
-                <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:280px;">
-                        <label>身高 (cm)</label>
-                        <input id="heightInput" type="number" min="50" value="" style="width:100%; padding:8px; margin-bottom:8px;">
-                        <label>體重 (kg)</label>
-                        <input id="weightInput" type="number" min="20" value="" style="width:100%; padding:8px; margin-bottom:8px;">
-                        <button id="saveMeasureBtn" style="padding:8px 12px;">儲存</button>
-                    </div>
-                    <div style="flex:1; min-width:280px;">
-                        <h3>當前 BMI</h3>
-                        <p id="currentBMI">尚未輸入身高/體重</p>
-                        <h3>月底預期 BMI</h3>
-                        <p id="expectedBMI">請先儲存測量值並確認訓練清單</p>
-                        <p style="font-size:0.9em; opacity:0.9;">預期邏輯：根據目前「我的訓練」項目數做保守估計 (每項視為每周一次，月內依剩餘週數調整)</p>
-                    </div>
-                </div>
-            </section>
+           <section id="myInBody" style="display:none; margin:20px auto; color:#fff;">
+		    <h2>我的 InBody 數據</h2>
+		    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+		        <div style="flex:1; min-width:280px;">
+		            <h3>輸入最新數據</h3>
+		            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+		                <div>
+		                    <label>身高 (cm)</label>
+		                    <input id="inbody_height" type="number" placeholder="175" style="width:100%; padding:8px; margin-bottom:8px;">
+		                </div>
+		                <div>
+		                    <label>體重 (kg)</label>
+		                    <input id="inbody_weight" type="number" placeholder="70" style="width:100%; padding:8px; margin-bottom:8px;">
+		                </div>
+		                <div>
+		                    <label>骨骼肌重 (kg)</label>
+		                    <input id="inbody_muscle" type="number" placeholder="30" style="width:100%; padding:8px; margin-bottom:8px;">
+		                </div>
+		                <div>
+		                    <label>體脂率 (%)</label>
+		                    <input id="inbody_fat" type="number" placeholder="15" style="width:100%; padding:8px; margin-bottom:8px;">
+		                </div>
+		                <div style="grid-column: span 2;">
+		                    <label>基礎代謝 (kcal) <small>(選填)</small></label>
+		                    <input id="inbody_bmr" type="number" placeholder="1600" style="width:100%; padding:8px; margin-bottom:8px;">
+		                </div>
+		            </div>
+		            <button id="saveInBodyBtn" style="padding:10px 20px; margin-top:10px; width:100%;">儲存紀錄</button>
+		        </div>
+		
+		        <div style="flex:1; min-width:280px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px;">
+		            <h3>當前身體組成</h3>
+		            <div id="inbodyDisplay">
+		                <p>載入中...</p>
+		            </div>
+		            
+		            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+		            
+		            <h3>簡易分析</h3>
+		            <p id="inbodyAnalysis" style="font-size: 0.9em; line-height: 1.6; color: #ddd;">
+		                請輸入並儲存數據以獲得分析。
+		            </p>
+		        </div>
+		    </div>
+		</section>
 
             <!-- 菜單 -->
             <section id="mealPlan" style="display:none; margin:20px auto; color:#fff;">
@@ -332,12 +357,12 @@
         </div>
     </main>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js';
         import { getFirestore, doc, getDoc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js';
 
-        // Firebase 設定 - 請確保與 login.html 和 register.html 一致
+        // Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyBYvosLMm7SaPAFQzwuwuUDfFqsSXk5kTY",
             authDomain: "smart-gym-men.firebaseapp.com",
@@ -356,9 +381,11 @@
         // UI references
         const welcomeBox = document.getElementById('welcomeBox');
         const featureContent = document.getElementById('featureContent');
+        
+        // 修改：對應 HTML 正確的區塊 ID
         const sections = {
             myTraining: document.getElementById('myTraining'),
-            myBMI: document.getElementById('myBMI'),
+            myInBody: document.getElementById('myInBody'), // 修正這裡對應新的 ID
             mealPlan: document.getElementById('mealPlan'),
             aiAdvisor: document.getElementById('aiAdvisor')
         };
@@ -376,12 +403,21 @@
         window.showFeature = (featureName) => {
             welcomeBox.style.display = 'none';
             featureContent.style.display = 'block';
-            Object.keys(sections).forEach(k => sections[k].style.display = 'none');
-            if (sections[featureName]) sections[featureName].style.display = 'block';
-            // load data when opened
+            
+            // 隱藏所有區塊
+            Object.keys(sections).forEach(k => {
+                if(sections[k]) sections[k].style.display = 'none';
+            });
+            
+            // 顯示選定區塊
+            if (sections[featureName]) {
+                sections[featureName].style.display = 'block';
+            }
+
+            // Load data when opened
             if (featureName === 'myTraining') loadTraining();
             if (featureName === 'mealPlan') renderMenu();
-            if (featureName === 'myBMI') computeAndShowBMI();
+            if (featureName === 'myInBody') loadInBodyData(); // 修改：載入 InBody 資料
         };
 
         // Auth state and load user-specific data
@@ -394,69 +430,68 @@
                 currentUser = user;
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
+                
+                let displayName = user.email;
                 if (userDocSnap.exists()) {
                     const userData = userDocSnap.data();
-                    const displayName = userData.name || userData.username || user.email;
-                    userNameDisplay.textContent = `歡迎, ${displayName}`;
-                    welcomeGreeting.textContent = `歡迎回來, ${userData.name || userData.username || user.email}！`;
-                } else {
-                    userNameDisplay.textContent = `歡迎, ${user.email}`;
-                    welcomeGreeting.textContent = `歡迎回來, ${user.email}！`;
+                    displayName = userData.name || userData.username || user.email;
                 }
+                
+                userNameDisplay.textContent = `歡迎, ${displayName}`;
+                welcomeGreeting.textContent = `歡迎回來, ${displayName}！`;
+
                 // preload menu and training
                 renderMenu();
                 loadTraining();
-                loadMeasurementsToInputs();
+                loadInBodyData(); // 預先載入身體數據
             } else {
                 alert("您尚未登入，請先登入！");
                 window.location.href = "login.html";
             }
         });
 
-        // Training CRUD
+        // ================= Training CRUD =================
         const trainingListEl = document.getElementById('trainingList');
 
         function renderTrainingItem(docSnap) {
             const data = docSnap.data();
             const id = docSnap.id;
             const li = document.createElement('li');
-            li.style = "background:rgba(255,255,255,0.04); padding:10px; margin-bottom:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;";
-            const left = document.createElement('div');
-            left.innerHTML = `<strong>${data.name}</strong><br><small>組: ${data.sets} × 次: ${data.reps}</small>`;
-            const right = document.createElement('div');
-            right.style.display = 'flex';
-            right.style.gap = '8px';
-            const chk = document.createElement('input');
-            chk.type = 'checkbox';
-            chk.checked = !!data.completed;
+            // 注意：這裡的樣式已被 HTML head 中的 CSS class 覆蓋，但保持 inline style 作為備案
+            li.innerHTML = `
+                <div style="flex-grow:1;">
+                    <strong>${data.name}</strong><br>
+                    <small style="color:#ccc;">組數: ${data.sets} × 次數: ${data.reps}</small>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="checkbox" ${data.completed ? 'checked' : ''} class="status-chk">
+                    <button class="del-btn" style="background:#ff5555; padding:5px 10px; font-size:12px;">刪除</button>
+                </div>
+            `;
+            
+            // Event Listeners
+            const chk = li.querySelector('.status-chk');
             chk.addEventListener('change', () => toggleComplete(id, chk.checked));
-            const del = document.createElement('button');
-            del.textContent = '刪除';
+            
+            const del = li.querySelector('.del-btn');
             del.addEventListener('click', () => removeTraining(id));
-            right.appendChild(chk);
-            right.appendChild(del);
-            li.appendChild(left);
-            li.appendChild(right);
-            li.id = `t-${id}`;
+
             return li;
         }
 
         let trainingUnsub = null;
         function loadTraining() {
             if (!currentUser) return;
-            // 清空現有列表
-            trainingListEl.innerHTML = '';
-            // 使用 onSnapshot 監聽 users/{uid}/trainings
-            if (trainingUnsub) trainingUnsub(); // 取消先前監聽
+            if (trainingUnsub) trainingUnsub(); 
+            
             const col = collection(db, 'users', currentUser.uid, 'trainings');
+            // 即時監聽
             trainingUnsub = onSnapshot(col, (snap) => {
                 trainingListEl.innerHTML = '';
                 snap.forEach(docSnap => {
                     const li = renderTrainingItem(docSnap);
                     trainingListEl.appendChild(li);
                 });
-                // 更新 BMI 畫面預期（若當前顯示）
-                if (sections.myBMI.style.display !== 'none') computeAndShowBMI();
             });
         }
 
@@ -474,11 +509,11 @@
 
         async function removeTraining(id) {
             if (!currentUser) return;
+            if(!confirm('確定要刪除此訓練嗎？')) return;
             const tDoc = doc(db, 'users', currentUser.uid, 'trainings', id);
             await deleteDoc(tDoc);
         }
 
-        // Add training form submit
         document.getElementById('addTrainingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('t_name').value.trim();
@@ -489,107 +524,130 @@
             e.target.reset();
         });
 
-        // Render menu suggestions
+        // ================= Meal Plan / Menu =================
         const menuListEl = document.getElementById('menuList');
         function renderMenu() {
             menuListEl.innerHTML = '';
             suggestedMenu.forEach((m, idx) => {
                 const card = document.createElement('div');
-                card.style = "background:rgba(255,255,255,0.04); padding:12px; border-radius:8px;";
-                card.innerHTML = `<strong>${m.name}</strong><div style="margin-top:8px;">
-					<label>組數 <input type="number" value="${m.defaultSets}" min="1" id="menu_sets_${idx}" style="width:60px"></label>
-					<label style="margin-left:8px;">次數 <input type="number" value="${m.defaultReps}" min="1" id="menu_reps_${idx}" style="width:60px"></label>
-					</div>`;
-                const btn = document.createElement('button');
-                btn.textContent = '加入訓練';
-                btn.style.marginTop = '8px';
-                btn.addEventListener('click', async () => {
+                card.innerHTML = `
+                    <div style="padding:15px;">
+                        <h4 style="margin:0 0 10px 0; color:var(--primary-color);">${m.name}</h4>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <label style="font-size:14px;">組 <input type="number" value="${m.defaultSets}" min="1" id="menu_sets_${idx}" style="width:40px; padding:5px;"></label>
+                            <label style="font-size:14px;">次 <input type="number" value="${m.defaultReps}" min="1" id="menu_reps_${idx}" style="width:40px; padding:5px;"></label>
+                        </div>
+                        <button id="btn_add_${idx}" style="width:100%; font-size:13px;">加入訓練</button>
+                    </div>`;
+                
+                menuListEl.appendChild(card);
+                
+                // Add event listener manually
+                document.getElementById(`btn_add_${idx}`).addEventListener('click', async () => {
                     const sets = Number(document.getElementById(`menu_sets_${idx}`).value) || m.defaultSets;
                     const reps = Number(document.getElementById(`menu_reps_${idx}`).value) || m.defaultReps;
                     await addTraining({ name: m.name, sets, reps });
                     alert(`${m.name} 已加入我的訓練`);
                 });
-                card.appendChild(btn);
-                menuListEl.appendChild(card);
             });
         }
 
-        // BMI logic: save/load measurements and compute expected BMI
-        const heightInput = document.getElementById('heightInput');
-        const weightInput = document.getElementById('weightInput');
-        const currentBMIEl = document.getElementById('currentBMI');
-        const expectedBMIEl = document.getElementById('expectedBMI');
-        document.getElementById('saveMeasureBtn').addEventListener('click', saveMeasurements);
+        // ================= InBody Logic (New!) =================
+        // 抓取新的 HTML 元素 ID
+        const inbodyInputs = {
+            height: document.getElementById('inbody_height'),
+            weight: document.getElementById('inbody_weight'),
+            muscle: document.getElementById('inbody_muscle'),
+            fat: document.getElementById('inbody_fat'),
+            bmr: document.getElementById('inbody_bmr')
+        };
+        const inbodyDisplay = document.getElementById('inbodyDisplay');
+        const inbodyAnalysis = document.getElementById('inbodyAnalysis');
+        const saveInBodyBtn = document.getElementById('saveInBodyBtn');
 
-        async function saveMeasurements() {
-            if (!currentUser) return alert('未登入');
-            const h = Number(heightInput.value);
-            const w = Number(weightInput.value);
-            if (!h || !w) return alert('請輸入正確身高體重');
-            const uDoc = doc(db, 'users', currentUser.uid);
-            await setDoc(uDoc, { measurements: { height: h, weight: w, timestamp: Date.now() } }, { merge: true });
-            alert('已儲存');
-            computeAndShowBMI();
+        // 儲存按鈕監聽
+        saveInBodyBtn.addEventListener('click', saveInBodyData);
+
+        async function saveInBodyData() {
+            if (!currentUser) return alert('請先登入');
+
+            // 取得輸入值
+            const newData = {
+                height: Number(inbodyInputs.height.value),
+                weight: Number(inbodyInputs.weight.value),
+                muscle: Number(inbodyInputs.muscle.value),
+                fat: Number(inbodyInputs.fat.value),
+                bmr: Number(inbodyInputs.bmr.value),
+                updatedAt: Date.now()
+            };
+
+            // 簡單驗證
+            if (!newData.height || !newData.weight) {
+                return alert('身高與體重為必填欄位！');
+            }
+
+            try {
+                const uDoc = doc(db, 'users', currentUser.uid);
+                // 使用 merge: true 更新 users 集合中的 inbody 欄位
+                await setDoc(uDoc, { inbody: newData }, { merge: true });
+                alert('InBody 數據已更新！');
+                renderInBodyStats(newData); // 更新畫面顯示
+            } catch (e) {
+                console.error("Save failed", e);
+                alert("儲存失敗");
+            }
         }
 
-        async function loadMeasurementsToInputs() {
+        async function loadInBodyData() {
             if (!currentUser) return;
             const uDocRef = doc(db, 'users', currentUser.uid);
             const snap = await getDoc(uDocRef);
+            
             if (snap.exists()) {
                 const d = snap.data();
-                if (d.measurements) {
-                    heightInput.value = d.measurements.height || '';
-                    weightInput.value = d.measurements.weight || '';
+                if (d.inbody) {
+                    // 填入 Input 欄位
+                    inbodyInputs.height.value = d.inbody.height || '';
+                    inbodyInputs.weight.value = d.inbody.weight || '';
+                    inbodyInputs.muscle.value = d.inbody.muscle || '';
+                    inbodyInputs.fat.value = d.inbody.fat || '';
+                    inbodyInputs.bmr.value = d.inbody.bmr || '';
+
+                    // 更新右側顯示與分析
+                    renderInBodyStats(d.inbody);
+                } else {
+                    inbodyDisplay.innerHTML = '<p style="color:#aaa;">尚無數據，請在左側輸入。</p>';
                 }
             }
         }
 
-        function computeBMI(hCm, wKg) {
-            if (!hCm || !wKg) return null;
-            const hM = hCm / 100;
-            return +(wKg / (hM * hM)).toFixed(2);
+        function renderInBodyStats(data) {
+            // 計算 BMI
+            const hM = data.height / 100;
+            const bmi = (data.weight / (hM * hM)).toFixed(1);
+
+            inbodyDisplay.innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><small>BMI</small><br><strong style="font-size:1.4em; color:#d48885;">${bmi}</strong></div>
+                    <div><small>骨骼肌</small><br><strong>${data.muscle} kg</strong></div>
+                    <div><small>體脂率</small><br><strong>${data.fat} %</strong></div>
+                    <div><small>基礎代謝</small><br><strong>${data.bmr || '--'} kcal</strong></div>
+                </div>
+            `;
+
+            // 產生簡易分析
+            let advice = "";
+            if (bmi < 18.5) advice += "您的體重過輕，建議增加營養攝取並進行增肌訓練。";
+            else if (bmi >= 24) advice += "您的 BMI 偏高，建議搭配有氧運動控制體脂。";
+            else advice += "您的 BMI 在標準範圍內，請保持！";
+
+            if (data.fat > 25) advice += "<br>體脂率略高，建議注意飲食控制。";
+            if (data.muscle > data.weight * 0.4) advice += "<br>您的肌肉量表現很棒！";
+
+            inbodyAnalysis.innerHTML = advice;
         }
 
-        function weeksUntilMonthEnd() {
-            const today = new Date();
-            const end = new Date(today.getFullYear(), today.getMonth() + 1, 0); // last day of month
-            const diffDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-            return Math.max(1, Math.round(diffDays / 7)); // at least 1 week
-        }
-
-        async function computeAndShowBMI() {
-            const h = Number(heightInput.value);
-            const w = Number(weightInput.value);
-            const cur = computeBMI(h, w);
-            currentBMIEl.textContent = cur ? `${cur}` : '尚未輸入身高/體重';
-            // estimate reduction: assume each training item equals 1 session/week; each session => conservative -0.08 kg bodyweight per session/week for month
-            // use item count from training collection
-            if (!currentUser) {
-                expectedBMIEl.textContent = '未登入';
-                return;
-            }
-            // fetch trainings once
-            const trainingsCol = collection(db, 'users', currentUser.uid, 'trainings');
-            const snap = await getDoc(doc(db, 'users', currentUser.uid)); // quick read to ensure exists (we could do query but keep simple)
-            // count items by reading snapshot via onSnapshot would be async; instead do a single get using onSnapshot not available here -> use onSnapshot data cached via loadTraining listener.
-            // We'll estimate based on DOM list count:
-            const itemCount = trainingListEl.children.length || 0;
-            if (!cur) {
-                expectedBMIEl.textContent = '請先輸入身高/體重';
-                return;
-            }
-            const weeks = weeksUntilMonthEnd();
-            // conservative weight change per training item per week (kg)
-            const kgPerItemPerWeek = -0.08; // conservative
-            const expectedWeightChange = itemCount * kgPerItemPerWeek * weeks;
-            const currentWeight = w;
-            const expectedWeight = +(currentWeight + expectedWeightChange).toFixed(1);
-            const expectedBMI = computeBMI(h, expectedWeight);
-            expectedBMIEl.textContent = expectedBMI ? `${expectedBMI}（估計體重 ${expectedWeight} kg）` : '無法計算';
-        }
-
-        // AI 顧問 (本地 Web Speech API + 簡單回覆)
+        // ================= AI Advisor (Rule-based + Speech) =================
         const chatLog = document.getElementById('chatLog');
         const userMsg = document.getElementById('userMsg');
         const sendMsgBtn = document.getElementById('sendMsg');
@@ -606,43 +664,45 @@
             aiRespond(text);
         });
 
-		function appendChat(who, text) {
-		    const div = document.createElement('div');
-		    // 判斷是誰發言，給予不同的 class
-		    const isUser = who === '我' || who.includes('我');
-		    
-		    div.style.cssText = `
-		        padding: 10px 15px;
-		        border-radius: 18px;
-		        margin-bottom: 10px;
-		        max-width: 75%;
-		        word-wrap: break-word;
-		        font-size: 15px;
-		        line-height: 1.5;
-		        align-self: ${isUser ? 'flex-end' : 'flex-start'};
-		        background-color: ${isUser ? '#d48885' : 'rgba(255,255,255,0.15)'};
-		        color: #fff;
-		        border-bottom-${isUser ? 'right' : 'left'}-radius: 4px;
-		    `;
-		    
-		    // 不再顯示 "我:" 或 "AI:" 這些字眼，直接顯示內容，靠左右位置區分
-		    div.textContent = text; 
-		    
-		    chatLog.appendChild(div);
-		    chatLog.scrollTop = chatLog.scrollHeight;
-		}
+        function appendChat(who, text) {
+            const div = document.createElement('div');
+            const isUser = who === '我' || who.includes('我');
+            
+            div.style.cssText = `
+                padding: 10px 15px;
+                border-radius: 18px;
+                margin-bottom: 10px;
+                max-width: 75%;
+                word-wrap: break-word;
+                font-size: 15px;
+                line-height: 1.5;
+                align-self: ${isUser ? 'flex-end' : 'flex-start'};
+                background-color: ${isUser ? '#d48885' : 'rgba(255,255,255,0.15)'};
+                color: #fff;
+                border-bottom-${isUser ? 'right' : 'left'}-radius: 4px;
+            `;
+            
+            div.textContent = text; 
+            chatLog.appendChild(div);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
 
         function aiRespond(text) {
-            // very small rule-based replies for offline demo
             const low = text.toLowerCase();
-            let resp = "抱歉，我目前只能提供簡單建議。請更具體描述問題。";
-            if (low.includes('減肥') || low.includes('瘦')) resp = "建議每週維持有氧與阻力訓練，並調整飲食；每週至少3次中度運動。";
-            if (low.includes('增肌')) resp = "建議增加蛋白質攝取與每週3-4次的阻力訓練，逐步進行重量遞增。";
-            if (low.includes('建議') || low.includes('菜單')) resp = "推薦：深蹲、硬舉、臥推、划船，可交替安排上/下/休息日。";
-            if (low.includes('嗨') || low.includes('hello') || low.includes('hi')) resp = "嗨！需要什麼訓練建議嗎？";
+            let resp = "抱歉，我目前只能提供簡單建議。請更具體描述問題，例如「減肥」、「增肌」或「InBody建議」。";
+            
+            // 簡單的關鍵字規則
+            if (low.includes('減肥') || low.includes('瘦')) resp = "減脂建議：每週進行 3 次有氧運動（如跑步、游泳）30分鐘以上，並控制碳水化合物攝取，製造熱量赤字。";
+            if (low.includes('增肌')) resp = "增肌建議：專注於大重量複合動作（深蹲、硬舉），每組 8-12 下。蛋白質攝取建議為體重 x 1.6~2.0 克。";
+            if (low.includes('菜單') || low.includes('計畫')) resp = "推薦新手菜單：週一練胸與三頭，週三練背與二頭，週五練腿與核心。記得加入我的訓練清單喔！";
+            if (low.includes('inbody') || low.includes('數據')) resp = "InBody 數據能反映身體組成。若體脂高，多做有氧；若骨骼肌低，請加強重訓。";
+            if (low.includes('你好') || low.includes('嗨')) resp = "嗨！我是您的 AI 健身顧問，今天想討論訓練還是飲食呢？";
+
             lastAIResp = resp;
-            appendChat('AI', resp);
-            speakText(resp);
+            setTimeout(() => {
+                appendChat('AI', resp);
+                speakText(resp);
+            }, 600); // 模擬延遲
         }
 
         // TTS
@@ -657,7 +717,7 @@
             if (lastAIResp) speakText(lastAIResp);
         });
 
-        // STT (Chrome)
+        // STT (Web Speech API)
         let recognition = null;
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -670,10 +730,10 @@
                 appendChat('我(語音)', txt);
                 aiRespond(txt);
             };
-            recognition.onerror = (e) => console.error('STT error', e);
             recognition.onend = () => {
                 startRecBtn.disabled = false;
                 stopRecBtn.disabled = true;
+                startRecBtn.textContent = '🎤 語音輸入';
             };
         } else {
             startRecBtn.disabled = true;
@@ -684,16 +744,15 @@
             if (!recognition) return;
             recognition.start();
             startRecBtn.disabled = true;
+            startRecBtn.textContent = '聆聽中...';
             stopRecBtn.disabled = false;
         });
         stopRecBtn.addEventListener('click', () => {
             if (!recognition) return;
             recognition.stop();
-            startRecBtn.disabled = false;
-            stopRecBtn.disabled = true;
         });
 
-        // 登出功能 (保留原有)
+        // Logout
         window.logout = async () => {
             try {
                 await signOut(auth);
@@ -701,7 +760,7 @@
                 window.location.href = "login.html";
             } catch (error) {
                 console.error("登出失敗：", error);
-                alert("登出失敗，請稍後再試。");
+                alert("登出失敗");
             }
         };
 
